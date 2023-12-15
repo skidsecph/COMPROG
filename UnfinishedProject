@@ -1,0 +1,165 @@
+#include <stdio.h>
+#include <stdlib.h>
+
+// Function prototypes
+void displayMenu();
+void displayMed();
+int selectMed();
+float calculateTotal(int medicineIndex, int quantity);
+void counterPharmacy(float totalCost);
+void displayOrders();
+
+// Constants for medicine details
+#define NUM_MEDICINES 4
+const char *medicineNames[NUM_MEDICINES] = {"Biogesic", "Dolfenal", "Neozep", "Alaxan FR"};
+const float medicinePrices[NUM_MEDICINES] = {10.00, 23.00, 7.00, 30.00};
+
+// Variables to track the order status
+int orderPlaced = 0;
+int selectedMedicine;
+int selectedQuantity;
+
+// Arrays to store orders
+#define MAX_ORDERS 100
+char orderedMedicines[MAX_ORDERS][20]; // Assuming medicine names are not longer than 20 characters
+int orderedQuantities[MAX_ORDERS];
+float orderedTotalCosts[MAX_ORDERS];
+int numOrders = 0;
+
+int main() {
+    displayMenu();
+    return 0;
+}
+
+// Function to display the main menu
+void displayMenu() {
+    int choice;
+
+    while (1) { // Loop until the user chooses to exit
+        printf("\n==============================");
+        printf("\nPharmacy System Menu:\n");
+        printf("1. Choose Medicine\n");
+        printf("2. Go to counter\n");
+        printf("3. Display Orders\n");
+        printf("4. Exit\n");
+        printf("\n==============================");
+        printf("\nEnter your selection: ");
+        scanf("%d", &choice);
+
+        switch (choice) {
+            case 1:
+                selectedMedicine = selectMed();
+                if (selectedMedicine == 4) {
+                    // Exit option selected in selectMed
+                    printf("\nExiting Pharmacy...");
+                    return;
+                }
+                orderPlaced = 1; // Order has been placed
+                break;
+
+            case 2:
+                if (orderPlaced) {
+                    counterPharmacy(calculateTotal(selectedMedicine - 1, selectedQuantity));
+                } else {
+                    printf("\nNo order yet. Please make an order first.");
+                }
+                break;
+
+            case 3:
+                displayOrders();
+                break;
+
+            case 4:
+                printf("\nExiting Pharmacy...");
+                return;
+
+            default:
+                printf("\nInvalid selection. Please choose a valid option.");
+                break;
+        }
+    }
+}
+
+// Function to display the available medicines
+void displayMed() {
+    printf("\n==============================");
+    printf("\nMedicine             Price\n");
+
+    for (int i = 0; i < NUM_MEDICINES; ++i) {
+        printf("%d. %-18s%.2f\n", i + 1, medicineNames[i], medicinePrices[i]);
+    }
+
+    printf("%d. Exit\n", NUM_MEDICINES + 1);
+    printf("==============================");
+}
+
+// Function to select a medicine and quantity
+int selectMed() {
+    int choice;
+
+    displayMed();
+
+    printf("\nEnter your choice: ");
+    scanf("%d", &choice);
+
+    if (choice >= 1 && choice <= NUM_MEDICINES) {
+        printf("\nEnter the quantity: ");
+        scanf("%d", &selectedQuantity);
+
+        // Store the order
+        sprintf(orderedMedicines[numOrders], "%s", medicineNames[choice - 1]);
+        orderedQuantities[numOrders] = selectedQuantity;
+        orderedTotalCosts[numOrders] = calculateTotal(choice - 1, selectedQuantity);
+        numOrders++;
+
+        return choice;
+    } else if (choice == NUM_MEDICINES + 1) {
+        // Exit option selected
+        printf("\nExiting Pharmacy...");
+        return 4;  // Signal to exit
+    } else {
+        printf("\nInvalid selection. Please choose a valid option.");
+        return selectMed();  // Allow the user to try again
+    }
+}
+
+// Function to calculate the total cost of an order
+float calculateTotal(int medicineIndex, int quantity) {
+    return medicinePrices[medicineIndex] * quantity;
+}
+
+// Function to handle the pharmacy counter, including payment
+void counterPharmacy(float totalCost) {
+    printf("\n==============================");
+    printf("\nMedicine Payment Details");
+    printf("\n\nItem\t\tQuantity\t\tTotal Cost");
+    printf("\n%s\t\t%d\t\t%.2f", orderedMedicines[numOrders - 1], orderedQuantities[numOrders - 1], totalCost);
+
+    // Prompt for payment
+    printf("\n\nEnter the amount paid: ");
+    float amountPaid;
+    scanf("%f", &amountPaid);
+
+    if (amountPaid >= totalCost) {
+        printf("\nPayment successful. Change: %.2f\n", amountPaid - totalCost);
+    } else {
+        printf("\nInsufficient payment. Please provide enough funds.\n");
+    }
+}
+
+// Function to display the ordered items
+void displayOrders() {
+    printf("\n==============================");
+    printf("\nOrders\n");
+    printf("\nItem\t\tQuantity\t\tTotal Cost");
+
+    for (int i = 0; i < numOrders; ++i) {
+        printf("\n%s\t\t%d\t\t%.2f", orderedMedicines[i], orderedQuantities[i], orderedTotalCosts[i]);
+    }
+
+    if (numOrders == 0) {
+        printf("\nNo orders yet.");
+    }
+
+    printf("\n==============================");
+}
